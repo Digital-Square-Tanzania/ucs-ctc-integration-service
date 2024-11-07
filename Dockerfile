@@ -19,4 +19,4 @@ COPY src /app/src
 RUN ./gradlew clean shadowJar
 
 # Specify the default command to run on boot
-CMD ["java", "-jar", "/app/build/libs/ucs-ctc-module-integration-service-1.0.0.jar"]
+CMD ["java", "-jar", "/app/build/libs/ucs-ctc-integration-service-1.0.0.jar"]
