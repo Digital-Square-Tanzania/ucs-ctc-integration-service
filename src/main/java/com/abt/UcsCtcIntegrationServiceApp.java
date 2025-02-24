@@ -14,6 +14,7 @@ import java.util.concurrent.CompletionStage;
 
 //#main-class
 public class UcsCtcIntegrationServiceApp {
+    public static String SECRETE_KEY = "";
     // #start-http-server
     static void startHttpServer(Route route, ActorSystem<?> system) {
         CompletionStage<ServerBinding> futureBinding =
@@ -30,6 +31,7 @@ public class UcsCtcIntegrationServiceApp {
                 system.terminate();
             }
         });
+        SECRETE_KEY = system.settings().config().getString("integration-service.secret-key");
     }
 
     public static void main(String[] args) throws Exception {

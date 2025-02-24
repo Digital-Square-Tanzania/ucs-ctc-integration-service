@@ -2,16 +2,8 @@ package com.abt.util;
 
 
 import com.abt.UcsCtcIntegrationRoutes;
-import com.abt.domain.Address;
-import com.abt.domain.BaseRequest;
-import com.abt.domain.Client;
-import com.abt.domain.ClientEvents;
-import com.abt.domain.Event;
-import com.abt.domain.IndexContactRequest;
-import com.abt.domain.LtfClientRequest;
-import com.abt.domain.Obs;
-import com.abt.domain.Response;
-import com.abt.domain.Task;
+import com.abt.UcsCtcIntegrationServiceApp;
+import com.abt.domain.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -31,16 +23,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+
+import static com.abt.UcsCtcIntegrationServiceApp.SECRETE_KEY;
+import static com.abt.util.Utils.decryptDataNew;
 
 /**
  * Service class for OpenSRP operations.
@@ -61,7 +47,6 @@ public class OpenSrpService {
     private static Gson gson =
             new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss" +
                     ".SSSZ").registerTypeAdapter(org.joda.time.DateTime.class, new DateTimeTypeConverter()).create();
-
 
 
     // Static block to initialize the map
@@ -119,7 +104,7 @@ public class OpenSrpService {
      */
     public static Client getClientEvent(IndexContactRequest indexContacts) {
         Client familyClient = new Client(UUID.randomUUID().toString());
-        familyClient.setFirstName(indexContacts.getLastName());
+        familyClient.setFirstName(decryptDataNew(indexContacts.getLastName(), SECRETE_KEY, null));
         familyClient.setLastName("Family");
         familyClient.setBirthdate(new Date(0));
         familyClient.setBirthdateApprox(false);
@@ -145,7 +130,7 @@ public class OpenSrpService {
      */
     public static Client getClientEvent(LtfClientRequest ltfClientRequest) {
         Client familyClient = new Client(UUID.randomUUID().toString());
-        familyClient.setFirstName(ltfClientRequest.getClientLastName());
+        familyClient.setFirstName(decryptDataNew(ltfClientRequest.getClientLastName(), SECRETE_KEY, null));
         familyClient.setLastName("Family");
         familyClient.setBirthdate(new Date(0));
         familyClient.setBirthdateApprox(false);
@@ -207,13 +192,13 @@ public class OpenSrpService {
         }
 
         try {
-            ctcClient.setFirstName(indexContacts.getFirstName());
-            ctcClient.setMiddleName(indexContacts.getMiddleName());
+            ctcClient.setFirstName(decryptDataNew(indexContacts.getFirstName(), SECRETE_KEY, null));
+            ctcClient.setMiddleName(decryptDataNew(indexContacts.getMiddleName(),SECRETE_KEY, null));
         } catch (Exception e) {
             ctcClient.setMiddleName("");
         }
 
-        ctcClient.setLastName(indexContacts.getLastName());
+        ctcClient.setLastName(decryptDataNew(indexContacts.getLastName(), SECRETE_KEY, null));
         ctcClient.setGender(indexContacts.getSex().equalsIgnoreCase("M") ?
                 "Male" : "Female");
 
@@ -254,13 +239,13 @@ public class OpenSrpService {
         }
 
         try {
-            ctcClient.setFirstName(ltfClientRequest.getClientFirstName());
-            ctcClient.setMiddleName(ltfClientRequest.getClientMiddleName());
+            ctcClient.setFirstName(decryptDataNew(ltfClientRequest.getClientFirstName(), SECRETE_KEY, null));
+            ctcClient.setMiddleName(decryptDataNew(ltfClientRequest.getClientMiddleName(), SECRETE_KEY, null));
         } catch (Exception e) {
             ctcClient.setMiddleName("");
         }
 
-        ctcClient.setLastName(ltfClientRequest.getClientLastName());
+        ctcClient.setLastName(decryptDataNew(ltfClientRequest.getClientLastName(), SECRETE_KEY, null));
         ctcClient.setGender(ltfClientRequest.getClientSex().equalsIgnoreCase(
                 "M") ?
                 "Male" : "Female");
@@ -356,26 +341,24 @@ public class OpenSrpService {
                 Arrays.asList(new Object[]{String.valueOf(Calendar.getInstance().getTimeInMillis())}), null, null, "last_interacted_with"));
 
         familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
-                "surname",
-                "", Arrays.asList(new Object[]{client.getLastName()}), null,
+                "surname","", Arrays.asList(new Object[]{decryptDataNew(client.getLastName(), SECRETE_KEY, null)}), null,
                 null, "surname"));
 
         familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
-                "phone_number",
-                "",
-                Arrays.asList(new Object[]{indexContactRequest.getPrimaryPhoneNumber()}), null,
+                "phone_number","",
+                Arrays.asList(new Object[]{decryptDataNew(indexContactRequest.getPrimaryPhoneNumber(), SECRETE_KEY, null)}), null,
                 null, "phone_number"));
 
         familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
                 "other_phone_number",
                 "",
-                Arrays.asList(new Object[]{indexContactRequest.getAlternativePhoneNumber()}), null,
+                Arrays.asList(new Object[]{decryptDataNew(indexContactRequest.getAlternativePhoneNumber(), SECRETE_KEY, null)}), null,
                 null, "other_phone_number"));
 
         PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
         try {
             Phonenumber.PhoneNumber tzPhoneNumber =
-                    phoneUtil.parse(indexContactRequest.getPrimaryPhoneNumber(), "TZ");
+                    phoneUtil.parse(decryptDataNew(indexContactRequest.getPrimaryPhoneNumber(), SECRETE_KEY, null), "TZ");
 
             familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
                     "phone_number", "",
@@ -387,7 +370,7 @@ public class OpenSrpService {
 
         try {
             Phonenumber.PhoneNumber cateTakerPhoneNumber =
-                    phoneUtil.parse(indexContactRequest.getAlternativePhoneNumber(), "TZ");
+                    phoneUtil.parse(decryptDataNew(indexContactRequest.getAlternativePhoneNumber(), SECRETE_KEY, null), "TZ");
 
             familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
                     "other_phone_number", "",
@@ -418,8 +401,7 @@ public class OpenSrpService {
                                                          LtfClientRequest ltfClientRequest) {
         Event familyMemberRegistrationEvent = new Event();
         familyMemberRegistrationEvent.setBaseEntityId(client.getBaseEntityId());
-        familyMemberRegistrationEvent.setEventType("Family Member " +
-                "Registration");
+        familyMemberRegistrationEvent.setEventType("Family Member Registration");
         familyMemberRegistrationEvent.setEntityType("ec_independent_client");
         familyMemberRegistrationEvent.addObs(new Obs("formsubmissionField",
                 "text", "id_avail", "", Arrays.asList(new Object[]{"None"}),
@@ -429,7 +411,8 @@ public class OpenSrpService {
                 null, null, "leader"));
         familyMemberRegistrationEvent.addObs(new Obs("formsubmissionField",
                 "text", "last_interacted_with", "",
-                Arrays.asList(new Object[]{String.valueOf(Calendar.getInstance().getTimeInMillis())}), null, null, "last_interacted_with"));
+                Arrays.asList(new Object[]{String.valueOf(Calendar.getInstance().getTimeInMillis())}),
+                null, null, "last_interacted_with"));
 
         familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
                 "surname",
@@ -440,46 +423,58 @@ public class OpenSrpService {
             familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
                     "chairperson_name",
                     "",
-                    Arrays.asList(new Object[]{Utils.concatenateFullName(ltfClientRequest.getVillageStreetChairPersonFirstName(), ltfClientRequest.getVillageStreetChairPersonMiddleName(), ltfClientRequest.getVillageStreetChairPersonLastName())}),
+                    Arrays.asList(new Object[]{Utils.concatenateFullName(
+                            decryptDataNew(ltfClientRequest.getVillageStreetChairPersonFirstName(), SECRETE_KEY, null),
+                            decryptDataNew(ltfClientRequest.getVillageStreetChairPersonMiddleName(), SECRETE_KEY, null),
+                            decryptDataNew(ltfClientRequest.getVillageStreetChairPersonLastName(), SECRETE_KEY, null)
+                    )}),
                     null,
                     null, "chairperson_name"));
 
             familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
                     "chairperson_phone",
                     "",
-                    Arrays.asList(new Object[]{ltfClientRequest.getVillageStreetChairPersonPhoneNumber()}),
-                    null,
-                    null, "chairperson_phone"));
+                    Arrays.asList(new Object[]{
+                            decryptDataNew(ltfClientRequest.getVillageStreetChairPersonPhoneNumber(), SECRETE_KEY, null)
+                    }), null, null, "chairperson_phone"));
         }
 
         if (StringUtils.isNotBlank(ltfClientRequest.getTenCellLeaderFirstName())) {
             familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
                     "ten_house_cell_leader_name",
                     "",
-                    Arrays.asList(new Object[]{Utils.concatenateFullName(ltfClientRequest.getTenCellLeaderFirstName(), ltfClientRequest.getTenCellLeaderMiddleName(), ltfClientRequest.getTenCellLeaderLastName())}),
+                    Arrays.asList(new Object[]{Utils.concatenateFullName(
+                            decryptDataNew(ltfClientRequest.getTenCellLeaderFirstName(), SECRETE_KEY, null),
+                            decryptDataNew(ltfClientRequest.getTenCellLeaderMiddleName(), SECRETE_KEY, null),
+                            decryptDataNew(ltfClientRequest.getTenCellLeaderLastName(), SECRETE_KEY, null)
+                    )}),
                     null,
                     null, "ten_house_cell_leader_name"));
 
             familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
-                    "ten_house_cell_leader_phone",
-                    "",
-                    Arrays.asList(new Object[]{ltfClientRequest.getTenCellLeaderPhoneNumber()}),
-                    null,
-                    null, "ten_house_cell_leader_phone"));
+                    "ten_house_cell_leader_phone", "",
+                    Arrays.asList(new Object[]{
+                            decryptDataNew(ltfClientRequest.getTenCellLeaderPhoneNumber(), SECRETE_KEY, null)
+                    }),
+                    null, null, "ten_house_cell_leader_phone"));
         }
 
         if (StringUtils.isNotBlank(ltfClientRequest.getTreatmentSupporterFirstName())) {
             familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
                     "primary_caregiver_name",
                     "",
-                    Arrays.asList(new Object[]{Utils.concatenateFullName(ltfClientRequest.getTreatmentSupporterFirstName(), ltfClientRequest.getTreatmentSupporterMiddleName(), ltfClientRequest.getTreatmentSupporterLastName())}),
+                    Arrays.asList(new Object[]{Utils.concatenateFullName(decryptDataNew(ltfClientRequest.getTreatmentSupporterFirstName(), SECRETE_KEY, null),
+                            decryptDataNew(ltfClientRequest.getTreatmentSupporterMiddleName(), SECRETE_KEY, null),
+                            decryptDataNew(ltfClientRequest.getTreatmentSupporterLastName(), SECRETE_KEY, null)
+                    )}),
                     null,
                     null, "primary_caregiver_name"));
 
             familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
                     "other_phone_number",
                     "",
-                    Arrays.asList(new Object[]{ltfClientRequest.getTreatmentSupporterPhoneNumber()}),
+                    Arrays.asList(new Object[]{
+                            decryptDataNew(ltfClientRequest.getTreatmentSupporterPhoneNumber(), SECRETE_KEY, null)}),
                     null,
                     null, "other_phone_number"));
         }
@@ -487,7 +482,7 @@ public class OpenSrpService {
         PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
         try {
             Phonenumber.PhoneNumber tzPhoneNumber =
-                    phoneUtil.parse(ltfClientRequest.getClientPhoneNumber(),
+                    phoneUtil.parse(decryptDataNew(ltfClientRequest.getClientPhoneNumber(), SECRETE_KEY, null),
                             "TZ");
 
             familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
@@ -500,7 +495,7 @@ public class OpenSrpService {
 
         try {
             Phonenumber.PhoneNumber cateTakerPhoneNumber =
-                    phoneUtil.parse(ltfClientRequest.getTreatmentSupporterPhoneNumber(), "TZ");
+                    phoneUtil.parse(decryptDataNew(ltfClientRequest.getTreatmentSupporterPhoneNumber(), SECRETE_KEY, null), "TZ");
 
             familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
                     "other_phone_number", "",
@@ -798,8 +793,8 @@ public class OpenSrpService {
         clientEvents.setEvents(events);
         clientEvents.setNoOfEvents(events.size());
 
-        Task task = Utils.generateTask(ltfRequest,ltfEvent.getFormSubmissionId());
-        sendDataToDestination(gson.toJson(task),mUrl+"/opensrp/rest/task/",username,password,ltfRequest.getBaseEntityId(),ltfRequest.getUniqueId());
+        Task task = Utils.generateTask(ltfRequest, ltfEvent.getFormSubmissionId());
+        sendDataToDestination(gson.toJson(task), mUrl + "/opensrp/rest/task/", username, password, ltfRequest.getBaseEntityId(), ltfRequest.getUniqueId());
 
         return gson.toJson(clientEvents);
 
