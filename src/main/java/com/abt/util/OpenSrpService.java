@@ -2,7 +2,6 @@ package com.abt.util;
 
 
 import com.abt.UcsCtcIntegrationRoutes;
-import com.abt.UcsCtcIntegrationServiceApp;
 import com.abt.domain.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -193,7 +192,7 @@ public class OpenSrpService {
 
         try {
             ctcClient.setFirstName(decryptDataNew(indexContacts.getFirstName(), SECRETE_KEY, null));
-            ctcClient.setMiddleName(decryptDataNew(indexContacts.getMiddleName(),SECRETE_KEY, null));
+            ctcClient.setMiddleName(decryptDataNew(indexContacts.getMiddleName(), SECRETE_KEY, null));
         } catch (Exception e) {
             ctcClient.setMiddleName("");
         }
@@ -341,11 +340,11 @@ public class OpenSrpService {
                 Arrays.asList(new Object[]{String.valueOf(Calendar.getInstance().getTimeInMillis())}), null, null, "last_interacted_with"));
 
         familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
-                "surname","", Arrays.asList(new Object[]{decryptDataNew(client.getLastName(), SECRETE_KEY, null)}), null,
+                "surname", "", Arrays.asList(new Object[]{decryptDataNew(client.getLastName(), SECRETE_KEY, null)}), null,
                 null, "surname"));
 
         familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
-                "phone_number","",
+                "phone_number", "",
                 Arrays.asList(new Object[]{decryptDataNew(indexContactRequest.getPrimaryPhoneNumber(), SECRETE_KEY, null)}), null,
                 null, "phone_number"));
 
