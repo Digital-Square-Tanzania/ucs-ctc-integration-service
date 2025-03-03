@@ -94,6 +94,17 @@ public class OpenSrpService {
                 Arrays.asList(new Object[]{new Date()}), null, null, "end");
     }
 
+    /**
+     * Creates and returns an observation for the recGUID event.
+     *
+     * @return Obs object for the end event.
+     */
+    private static Obs getRecGuidOb(BaseRequest baseRequest) {
+        return new Obs("concept", "rec_guid",
+                "rec_guid", "",
+                Arrays.asList(new Object[]{baseRequest.getRecGuid()}), null, null, "rec_guid");
+    }
+
 
     /**
      * Creates a Client object for a given CTCPatient.
@@ -816,6 +827,7 @@ public class OpenSrpService {
         event.setDateCreated(new Date());
         event.addObs(OpenSrpService.getStartOb());
         event.addObs(OpenSrpService.getEndOb());
+        event.addObs(OpenSrpService.getRecGuidOb(baseRequest));
         event.setClientApplicationVersion(clientApplicationVersion);
         event.setClientDatabaseVersion(clientDatabaseVersion);
         event.setDuration(0);

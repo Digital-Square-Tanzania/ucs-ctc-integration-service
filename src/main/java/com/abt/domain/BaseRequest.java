@@ -14,8 +14,19 @@ public class BaseRequest {
     @JsonProperty("location_id")
     private String locationId;
 
+    @JsonProperty("rec_guid")
+    private String recGuid;
+
     @JsonProperty("provider_id")
     private String providerId;
+
+    public String getRecGuid() {
+        return recGuid;
+    }
+
+    public void setRecGuid(String recGuid) {
+        this.recGuid = recGuid;
+    }
 
     public String getTeamId() {
         return teamId;
