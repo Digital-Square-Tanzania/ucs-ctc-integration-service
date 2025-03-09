@@ -626,6 +626,10 @@ public class OpenSrpService {
                 "problem", "",
                 Arrays.asList(new Object[]{"CTC"}), null, null, "problem"));
 
+        ltfEvent.addObs(new Obs("concept", "text",
+                "last_appointment_date", "",
+                Arrays.asList(new Object[]{ltfClientRequest.getLastAppointmentDate()}), null, null, "last_appointment_date"));
+
         setMetaData(ltfEvent, ltfClientRequest);
         return ltfEvent;
     }
